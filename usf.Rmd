@@ -1,0 +1,223 @@
+---
+title: "USF"
+author: "Araê Cainã"
+date: "13/07/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+# Google Trends - Termos de pesquisa
+
+Entre 13/07/2020 e 13/07/2021
+
+```{r}
+library(readr)
+library(rgdal)
+library(stringi)
+library(leaflet)
+
+# Lê as bases de dados
+
+# Pesquisa da usf
+db_usf <- read_csv(
+  "geoMap.csv",
+  skip = 1
+)
+colnames(db_usf) <- c('uf', 'usf')
+
+# Pesquisa Universidade São Francisco
+
+db_universidade_sf <- read_csv(
+  "geoMap (1).csv",
+  skip = 1
+)
+colnames(db_universidade_sf) <- c('uf', 'usf')
+
+
+# Pesquisa usf + ead
+
+db_usf_ead <- read_csv(
+  "geoMap (3).csv",
+  skip = 1
+)
+colnames(db_usf_ead) <- c('uf', 'usf')
+
+
+estados <- c(
+  "Acre",
+  "Alagoas",
+  "Amapá",
+  "Amazonas",
+  "Bahia",
+  "Ceará",
+  "Distrito Federal",
+  "Espírito Santo",
+  "Goiás",
+  "Maranhão",
+  "Mato Grosso",
+  "Mato Grosso do Sul",
+  "Minas Gerais",
+  "Pará",
+  "Paraíba",
+  "Paraná",
+  "Pernambuco",
+  "Piauí",
+  "Rio de Janeiro",
+  "Rio Grande do Norte",
+  "Rio Grande do Sul",
+  "Rondônia",
+  "Roraima",
+  "São Paulo",
+  "Santa Catarina"     ,
+  "Sergipe",
+  "Tocantins"
+)
+
+# Lê os polígonos do Brasil
+shp <- readOGR("BRUFE250GC_SIR.shp", stringsAsFactors=FALSE, encoding="UTF-8")
+
+# Cria o db que contém os códigos dos estados
+uf_names <- data.frame(shp$CD_GEOCUF, shp$NM_ESTADO)
+colnames(uf_names) <- c('codigo', 'uf')
+
+uf_names <- uf_names[order(uf_names$uf),]
+
+uf_names$nome <- estados
+
+
+
+```
+
+## USF
+
+Procura pelo termo "USF"
+
+```{r}
+
+# merge as bases
+db_usf <- merge(uf_names, db_usf, by.x = 'nome', by.y = 'uf')
+
+map_usf <- merge(shp,db_usf, by.x = "NM_ESTADO", by.y = "uf")
+
+
+# Transformando
+
+proj4string(map_usf) <- CRS("+proj=longlat +datum=WGS84 +no_defs")
+
+#Encoding(map_usf$nome) <- "UTF-8"
+
+map_usf$usf[is.na(map_usf$usf)] <- 0
+
+pal <- colorBin("Blues",domain = NULL,n=5) #cores do mapa
+
+state_popup <- paste0(
+  "<strong>Estado: </strong>", 
+  map_usf$nome, 
+  "<br><strong>Procura: </strong>", 
+  map_usf$usf
+)
+
+
+leaflet(data = map_usf) %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = ~pal(map_usf$usf), 
+    fillOpacity = 0.8, 
+    color = "#BDBDC3", 
+    weight = 1, 
+    popup = state_popup
+  )
+
+```
+
+
+## Universidade São Francisco
+
+Procura pelo termo "map_universidade_sf"
+
+```{r}
+
+# merge as bases
+db_universidade_sf <- merge(uf_names, db_universidade_sf, by.x = 'nome', by.y = 'uf')
+
+map_universidade_sf <- merge(shp,db_universidade_sf, by.x = "NM_ESTADO", by.y = "uf")
+
+
+# Transformando
+
+proj4string(map_universidade_sf) <- CRS("+proj=longlat +datum=WGS84 +no_defs")
+
+#Encoding(map_usf$nome) <- "UTF-8"
+
+map_universidade_sf$usf[is.na(map_universidade_sf$usf)] <- 0
+
+pal <- colorBin("Blues",domain = NULL,n=5) #cores do mapa
+
+state_popup <- paste0(
+  "<strong>Estado: </strong>", 
+  map_universidade_sf$nome, 
+  "<br><strong>Procura: </strong>", 
+  map_universidade_sf$usf
+)
+
+
+leaflet(data = map_universidade_sf) %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = ~pal(map_universidade_sf$usf), 
+    fillOpacity = 0.8, 
+    color = "#BDBDC3", 
+    weight = 1, 
+    popup = state_popup
+  )
+
+
+```
+
+
+
+## USF + EAD
+
+Procura pelo termo "usf + ead"
+
+```{r}
+
+# merge as bases
+db_usf_ead <- merge(uf_names, db_usf_ead, by.x = 'nome', by.y = 'uf')
+
+map_usf_ead <- merge(shp,db_usf_ead, by.x = "NM_ESTADO", by.y = "uf")
+
+
+# Transformando
+
+proj4string(map_usf_ead) <- CRS("+proj=longlat +datum=WGS84 +no_defs")
+
+#Encoding(map_usf$nome) <- "UTF-8"
+
+map_usf_ead$usf[is.na(map_usf_ead$usf)] <- 0
+
+pal <- colorBin("Blues",domain = NULL,n=5) #cores do mapa
+
+state_popup <- paste0(
+  "<strong>Estado: </strong>", 
+  map_usf_ead$nome, 
+  "<br><strong>Procura: </strong>", 
+  map_usf_ead$usf
+)
+
+
+leaflet(data = map_usf_ead) %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = ~pal(map_usf_ead$usf), 
+    fillOpacity = 0.8, 
+    color = "#BDBDC3", 
+    weight = 1, 
+    popup = state_popup
+  )
+
+
+```
